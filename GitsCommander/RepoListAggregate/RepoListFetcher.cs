@@ -27,71 +27,78 @@ class RepositoriesLogic
 
     public async Task<IEnumerable<Repository>> GetRepositories()
     {
-        try
-        {
-            List<Repository> result = new();
+        List<Repository> result = new();
 
-            if (options.CurrentValue.RepositorySources.GitLabs != null)
-                await Gitlabs(result);
+        if (options.CurrentValue.RepositorySources.GitLabs != null)
+            await Gitlabs(result);
 
-            if (options.CurrentValue.RepositorySources.GitHubs != null)
-                await Githubs(result);
+        if (options.CurrentValue.RepositorySources.GitHubs != null)
+            await Githubs(result);
 
-            return result;
-        }
-        catch (Exception)
-        {
-            throw;
-        }
+        return result;
     }
 
     async Task Githubs(List<Repository> result)
     {
-        foreach (var source in options.CurrentValue.RepositorySources.GitHubs)
+        try
         {
-            var folder = $"{source.Value.DestinationFolder}";
-            if (string.IsNullOrEmpty(folder))
-                throw new Exception("appsettings destinationfolder cannot be empty");
-
-            if (!Directory.Exists(folder))
-                Directory.CreateDirectory(folder);
-
-            foreach (var item in await gitHubClient.FetchRepoList(source.Value))
+            foreach (var source in options.CurrentValue.RepositorySources.GitHubs)
             {
-                if (!source.Value.RepoNameRegexMatchRex.IsMatch(item.name))
-                {
-                    logger.LogInformation($"Ignoring '{item.name}'");
-                    continue;
-                }
+                var folder = $"{source.Value.DestinationFolder}";
+                if (string.IsNullOrEmpty(folder))
+                    throw new Exception("appsettings destinationfolder cannot be empty");
 
-                var virtualPath = "";
-                result.Add(new Repository(nextId++, source.Key, virtualPath, item.name, item.clone_url, folder));
+                if (!Directory.Exists(folder))
+                    Directory.CreateDirectory(folder);
+
+                foreach (var item in await gitHubClient.FetchRepoList(source.Value))
+                {
+                    if (!source.Value.RepoNameRegexMatchRex.IsMatch(item.name))
+                    {
+                        logger.LogInformation($"Ignoring '{item.name}'");
+                        continue;
+                    }
+
+                    var virtualPath = "";
+                    result.Add(new Repository(nextId++, source.Key, virtualPath, item.name, item.clone_url, folder));
+                }
             }
+        }
+        catch (Exception e)
+        {
+            logger.LogError(e, $"fetching github: {e.Message}");
         }
     }
 
     async Task Gitlabs(List<Repository> result)
     {
-        foreach (var source in options.CurrentValue.RepositorySources.GitLabs)
+        try
         {
-            foreach (var group in await gitLabClient.FetchGroupList(source.Value))
+            foreach (var source in options.CurrentValue.RepositorySources.GitLabs)
             {
-                if (!source.Value.RepoNameRegexMatchRex.IsMatch(group.web_url))
+                foreach (var group in await gitLabClient.FetchGroupList(source.Value))
                 {
-                    logger.LogInformation($"Ignoring '{group.web_url}'");
-                    continue;
+                    if (!source.Value.RepoNameRegexMatchRex.IsMatch(group.web_url))
+                    {
+                        logger.LogInformation($"Ignoring '{group.web_url}'");
+                        continue;
+                    }
+
+                    var virtualPath = Regex.Match(group.web_url, "^https://(.*)(\\.([^/.]*))/groups/(?<name>.*)").Groups["name"].Value;
+                    var folder = $"{source.Value.DestinationFolder}{virtualPath}";
+                    if (string.IsNullOrEmpty(folder))
+                        throw new Exception("appsettings destinationfolder cannot be empty");
+                    if (!Directory.Exists(folder))
+                        Directory.CreateDirectory(folder);
+
+                    IEnumerable<Repository> items = await GetGroupItems(source.Key, source.Value, folder, group.id, virtualPath);
+                    result.AddRange(items);
                 }
-
-                var virtualPath = Regex.Match(group.web_url, "^https://(.*)(\\.([^/.]*))/groups/(?<name>.*)").Groups["name"].Value;
-                var folder = $"{source.Value.DestinationFolder}{virtualPath}";
-                if (string.IsNullOrEmpty(folder))
-                    throw new Exception("appsettings destinationfolder cannot be empty");
-                if (!Directory.Exists(folder))
-                    Directory.CreateDirectory(folder);
-
-                IEnumerable<Repository> items = await GetGroupItems(source.Key, source.Value, folder, group.id, virtualPath);
-                result.AddRange(items);
             }
+        }
+        catch (Exception e)
+        {
+            logger.LogError(e, $"fetching gitlab: {e.Message}");
         }
     }
 
