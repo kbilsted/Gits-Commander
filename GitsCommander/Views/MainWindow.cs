@@ -17,8 +17,6 @@ public class MainWindow : Window
 
     public MainWindow(IMediator mediator)
     {
-        Window ??= this;
-
         topBar = new TextBox(Console.WindowWidth, "Gits Commander v1.0 by Kasper B. Graversen", null)
         {
             BackgroundColor = ConsoleColor.DarkBlue
@@ -37,8 +35,12 @@ public class MainWindow : Window
         launchBar = new HorizPanel(0, 0, 1, Console.WindowWidth);
         AddChild(launchBar);
 
-        mediator.Publish(new GetRepoListCommand());
-        mediator.Publish(new GetLaunchsettingsCommand());
+        if (Window == null)
+        {
+            Window = this;
+            mediator.Publish(new GetRepoListCommand());
+            mediator.Publish(new GetLaunchsettingsCommand());
+        }
 
         base.keyboardcode = ch =>
         {

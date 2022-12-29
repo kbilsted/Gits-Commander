@@ -1,22 +1,5 @@
 ﻿namespace GitsCommander.Gui;
 
-public class HorizPanel : GuiComponent
-{
-    public HorizPanel(int x, int y, int height = 1, int width = 1, bool visible = true) : base(x, y, height, width, visible)
-    {
-    }
-
-    public override GuiComponent AddChild(GuiComponent c)
-    {
-        c.X = Children.Any()
-            ? Children.Last().X + Children.Last().Width
-            : 0;
-        c.Y = Y;
-        Children.Add(c);
-        return this;
-    }
-}
-
 public abstract class GuiComponent
 {
     public static bool NeedRedraw { get; set; } = true;
@@ -29,13 +12,15 @@ public abstract class GuiComponent
 
     protected List<GuiComponent> Children = new List<GuiComponent>();
 
-    public readonly bool Visible = true;
+    public bool Visible = true;
 
     public ConsoleColor ForegroundColor = ConsoleColor.White;
     public ConsoleColor BackgroundColor = ConsoleColor.Black;
 
     public GuiComponent(int x, int y, int height = 1, int width = 1, bool visible = true)
     {
+        Console.CursorVisible = false;
+
         X = x;
         Y = y;
         Visible = visible;
@@ -47,6 +32,9 @@ public abstract class GuiComponent
     {
         if (NeedRedraw)
             return true;
+
+        if (Visible == false)
+            return false;
 
         foreach (var item in Children)
         {
@@ -73,17 +61,20 @@ public abstract class GuiComponent
         {
             lock (Lock)
             {
-                Children
-                    .Where(x => x.Visible)
-                    .ToList()
-                    .ForEach(x =>
-                    {
-                        Console.SetCursorPosition(x.X, x.Y);
-                        Console.ForegroundColor = x.ForegroundColor;
-                        Console.BackgroundColor = x.BackgroundColor;
+                if (Visible)
+                {
+                    Children
+                        .Where(x => x.Visible)
+                        .ToList()
+                        .ForEach(x =>
+                        {
+                            Console.SetCursorPosition(x.X, x.Y);
+                            Console.ForegroundColor = x.ForegroundColor;
+                            Console.BackgroundColor = x.BackgroundColor;
 
-                        x.Draw();
-                    });
+                            x.Draw();
+                        });
+                }
 
                 NeedRedraw = false;
             }

@@ -12,17 +12,20 @@ class RepositoriesLogic
     private readonly GitHubClient gitHubClient;
     private readonly IOptionsMonitor<Configuration> options;
     private readonly ILogger<RepositoriesLogic> logger;
+    private readonly IMediator mediator;
 
     public RepositoriesLogic(
         GitlabClient gitLabClient,
         GitHubClient gitHubClient,
         IOptionsMonitor<Configuration> options,
-        ILogger<RepositoriesLogic> logger)
+        ILogger<RepositoriesLogic> logger, 
+        IMediator mediator)
     {
         this.gitLabClient = gitLabClient;
         this.gitHubClient = gitHubClient;
         this.options = options;
         this.logger = logger;
+        this.mediator = mediator;
     }
 
     public async Task<IEnumerable<Repository>> GetRepositories()
@@ -67,6 +70,7 @@ class RepositoriesLogic
         catch (Exception e)
         {
             logger.LogError(e, $"fetching github: {e.Message}");
+            await mediator.Publish(new ExceptionHasOccured(e.Message));
         }
     }
 
@@ -99,6 +103,7 @@ class RepositoriesLogic
         catch (Exception e)
         {
             logger.LogError(e, $"fetching gitlab: {e.Message}");
+            await mediator.Publish(new ExceptionHasOccured(e.Message));
         }
     }
 
