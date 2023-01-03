@@ -17,7 +17,6 @@ class Program
             .Build();
 
         // TODO look into nedsted logging
-        // TODO look into validation of configs
 
         var host = new HostBuilder()
             .ConfigureLogging((ctx, lb) =>
@@ -37,7 +36,8 @@ class Program
 
                 services.AddHttpClient(); // IHttpClientFactory
 
-                services.Configure<Configuration>(config.GetRequiredSection("Configuration")); //services.AddSingleton<Configuration>(x => config.GetRequiredSection("Configuration").Get<Configuration>()!);
+                services.Configure<Configuration>(config.GetRequiredSection("Configuration"));
+                services.AddOptions<Configuration>().ValidateDataAnnotations().ValidateOnStart();
             })
             .UseConsoleLifetime()
             .Build();

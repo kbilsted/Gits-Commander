@@ -8,7 +8,11 @@ public class Configuration
 {
     [Required]
     public string GitExePath { get; set; }
+
+    [Required]
     public Dictionary<string, LaunchSetting> Launchers { get; set; }
+    
+    [Required]
     public RepositorySourcesSettings RepositorySources { get; set; }
 }
 
@@ -20,16 +24,21 @@ public class RepositorySourcesSettings
 
 public class LaunchSetting
 {
+    [Required]
     public string Name { get; set; }
+
+    [Required]
     public string Command { get; set; }
+    
     public string[] Arguments { get; set; }
-    public string Folder { get; set; }
     public string FilePattern { get; set; }
 }
 
 public abstract class Source
 {
+    [Required]
     public string RepoNameRegexMatch { get; set; }
+
     Regex nameMatchRegex;
     public Regex RepoNameRegexMatchRex
     {
@@ -45,24 +54,32 @@ public abstract class Source
 
 public class GitHubSource : Source
 {
+    [Required]
     public ConnectionInfo Connection { get; set; }
 
     public class ConnectionInfo
     {
+        [Required]
         public string ApiKey { get; set; }
+        [Required]
         public string ReposApiUrl { get; set; }
+        [Required]
         public string SearchApiUrl { get; set; }
     }
 }
 
 public class GitLabSource : Source
 {
+    [Required]
     public ConnectionInfo Connection { get; set; }
 
     public class ConnectionInfo
     {
+        [Required]
         public string ApiKey { get; set; }
+        [Required]
         public string GroupsApiUrl { get; set; }
+        [Required]
         public string ReposApiUrl { get; set; }
     }
 }
