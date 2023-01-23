@@ -18,7 +18,7 @@ class RepositoriesLogic
         GitlabClient gitLabClient,
         GitHubClient gitHubClient,
         IOptionsMonitor<Configuration> options,
-        ILogger<RepositoriesLogic> logger, 
+        ILogger<RepositoriesLogic> logger,
         IMediator mediator)
     {
         this.gitLabClient = gitLabClient;
@@ -56,7 +56,7 @@ class RepositoriesLogic
 
                 foreach (var item in await gitHubClient.FetchRepoList(source.Value))
                 {
-                    if (!source.Value.RepoNameRegexMatchRex.IsMatch(item.name))
+                    if (!source.Value.RepoGroupPathRegexMatchRex.IsMatch(item.name))
                     {
                         logger.LogInformation($"Ignoring '{item.name}'");
                         continue;
@@ -82,14 +82,25 @@ class RepositoriesLogic
             {
                 foreach (var group in await gitLabClient.FetchGroupList(source.Value))
                 {
-                    if (!source.Value.RepoNameRegexMatchRex.IsMatch(group.web_url))
+                    var virtualPath = Regex.Match(group.web_url, "^https://(.*)(\\.([^/.]*))/groups/(?<name>.*)").Groups["name"].Value;
+
+                    if (!source.Value.RepoGroupPathRegexMatchRex.IsMatch(virtualPath))
                     {
                         logger.LogInformation($"Ignoring '{group.web_url}'");
                         continue;
                     }
 
-                    var virtualPath = Regex.Match(group.web_url, "^https://(.*)(\\.([^/.]*))/groups/(?<name>.*)").Groups["name"].Value;
-                    var folder = $"{source.Value.DestinationFolder}{virtualPath}";
+                    var prefixGobble = source.Value.DestinationPrefixGobble;
+                    if (prefixGobble != null)
+                    {
+                        if (virtualPath.Length >= prefixGobble.Length && virtualPath.StartsWith(prefixGobble))
+                            virtualPath = virtualPath.Replace(prefixGobble, "");
+                        else if (virtualPath.Length < prefixGobble.Length && prefixGobble.StartsWith(virtualPath))
+                            virtualPath = "";
+                    }
+
+                    var folder = Path.Combine(source.Value.DestinationFolder, virtualPath);
+
                     if (string.IsNullOrEmpty(folder))
                         throw new Exception("appsettings destinationfolder cannot be empty");
                     if (!Directory.Exists(folder))
@@ -102,7 +113,7 @@ class RepositoriesLogic
         }
         catch (Exception e)
         {
-            logger.LogError(e, $"fetching gitlab: {e.Message}");
+            logger.LogError(e, $"fetching gitlab: {e.Message}\n{e.StackTrace}");
             await mediator.Publish(new ExceptionHasOccured(e.Message));
         }
     }

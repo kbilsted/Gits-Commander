@@ -37,19 +37,21 @@ public class LaunchSetting
 public abstract class Source
 {
     [Required]
-    public string RepoNameRegexMatch { get; set; }
+    public string RepoGroupPathRegexMatch { get; set; }
 
     Regex nameMatchRegex;
-    public Regex RepoNameRegexMatchRex
+    public Regex RepoGroupPathRegexMatchRex
     {
         get
         {
-            return nameMatchRegex ??= new Regex(RepoNameRegexMatch ?? ".*", RegexOptions.Compiled);
+            return nameMatchRegex ??= new Regex(RepoGroupPathRegexMatch ?? ".*", RegexOptions.Compiled);
         }
     }
 
     [Required]
     public string DestinationFolder { get; set; }
+    
+    public string DestinationPrefixGobble { get; set; }
 }
 
 public class GitHubSource : Source
