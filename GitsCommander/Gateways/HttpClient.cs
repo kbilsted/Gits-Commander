@@ -13,7 +13,6 @@ public record HttpClient(IHttpClientFactory httpClientFactory)
             throw new Exception($"Cannot fetch from '{uri}' {response.ReasonPhrase}");
         string json = await response.Content.ReadAsStringAsync();
         var result = JsonSerializer.Deserialize<T>(json);
-        //var result = await JsonSerializer.DeserializeAsync<T>(response.Content.ReadAsStream());
         if (result == null)
             throw new NullReferenceException($"Got null from '{uri}'");
 

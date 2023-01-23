@@ -71,15 +71,16 @@ public class GitHubSource : Source
 public class GitLabSource : Source
 {
     [Required]
-    public ConnectionInfo Connection { get; set; }
+    public GitlabConnectionInfo Connection { get; set; }
 
-    public class ConnectionInfo
-    {
-        [Required]
-        public string ApiKey { get; set; }
-        [Required]
-        public string GroupsApiUrl { get; set; }
-        [Required]
-        public string ReposApiUrl { get; set; }
-    }
+   
+}
+public class GitlabConnectionInfo
+{
+    [Required]
+    public string ApiKey { get; set; }
+    [Required]
+    public string GroupsApiUrl { get; set; }
+    [Required]
+    public string ReposApiUrl { get; set; }
 }

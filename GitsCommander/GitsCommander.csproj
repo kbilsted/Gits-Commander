@@ -7,19 +7,19 @@
 		<Nullable>enable</Nullable>
 	</PropertyGroup>
 
+	<!--
 	<PropertyGroup>
 		<PublishSingleFile>true</PublishSingleFile>
 		<PublishReadyToRun>true</PublishReadyToRun>
-		
 	</PropertyGroup>
-
+-->
 
 	<ItemGroup>
 		<Content Include="appsettings.secret.json">
-			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
 		</Content>
 		<Content Include="appsettings.json">
-			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
 		</Content>
 	</ItemGroup>
 
