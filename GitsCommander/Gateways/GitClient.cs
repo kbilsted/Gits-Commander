@@ -42,7 +42,7 @@ public class GitClient
         p.Start();
         p.BeginOutputReadLine();
         if (timeout.HasValue)
-            p.WaitForExit(timeout.Value);
+            p.WaitForExit((int)timeout.Value.TotalMilliseconds);
         else
             p.WaitForExit();
 
