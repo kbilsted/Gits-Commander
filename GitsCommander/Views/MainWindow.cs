@@ -127,7 +127,9 @@ public class MainWindow : Window
             if (workList.Items.Any())
             {
                 int id = workList.GetActiveId()!.Value;
-                string status = data.Projections.SingleOrDefault(x => x.Item.Id == id)?.StatusMessage ?? "";
+                string status = data.Projections
+                    .ToArray()//ensure enumeration despite other threads mutate collection
+                    .SingleOrDefault(x => x.Item.Id == id)?.StatusMessage ?? "";
                 return $"Work: {data.Outstanding} - Selected: {status}";
             }
             return "Waiting for repo list...";
