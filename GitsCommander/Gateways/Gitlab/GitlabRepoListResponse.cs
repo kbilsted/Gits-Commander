@@ -16,8 +16,4 @@ class GitlabRepoListResponse
     public string http_url_to_repo { get; set; }
     public string web_url { get; set; }
     public string readme_url { get; set; }
-    public object avatar_url { get; set; }
-    public bool empty_repo { get; set; }
-    public bool archived { get; set; }
-    public string visibility { get; set; }
 }
