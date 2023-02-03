@@ -1,6 +1,6 @@
 ﻿namespace GitsCommander.RepoListAggregate;
 
-public record GetRepoListCommand : INotification;
+public record GetRepoListCommand(bool force) : INotification;
 public record RepoListWasCreated(List<Repository> Repos) : INotification;
 
 public record RepoHasLocalChanges(int Id) : INotification;

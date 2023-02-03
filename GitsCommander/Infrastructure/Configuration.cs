@@ -7,6 +7,9 @@ namespace GitsCommander.Infrastructure;
 public class Configuration
 {
     [Required]
+    public string RepoListLocalCachePath { get; set; }
+
+    [Required]
     public string GitExePath { get; set; }
 
     [Required]

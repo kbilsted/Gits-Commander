@@ -60,7 +60,7 @@ record LaunchCommandHandler(IMediator Mediator, IOptionsMonitor<Configuration> o
         switch (launcher.Command)
         {
             case LauncherLanguage.SpecialRefreshRepo:
-                Mediator.Publish(new GetRepoListCommand());
+                Mediator.Publish(new GetRepoListCommand(true));
                 return;
 
             case LauncherLanguage.OpenAppSettings:

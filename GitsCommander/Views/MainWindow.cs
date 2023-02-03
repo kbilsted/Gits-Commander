@@ -72,7 +72,7 @@ public class MainWindow : Window
         if (Window == null)
         {
             Window = this;
-            mediator.Publish(new GetRepoListCommand());
+            mediator.Publish(new GetRepoListCommand(false));
             mediator.Publish(new GetLaunchsettingsCommand());
         }
 
