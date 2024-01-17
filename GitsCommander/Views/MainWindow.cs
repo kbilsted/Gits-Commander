@@ -51,7 +51,7 @@ public class MainWindow : Window
 
     public MainWindow(IMediator mediator)
     {
-        topBar = new TextBox(Console.WindowWidth, "Gits Commander v1.0 by Kasper B. Graversen", null)
+        topBar = new TextBox(Console.WindowWidth-1, "Gits Commander v1.0 by Kasper B. Graversen", null)
         {
             BackgroundColor = ConsoleColor.DarkBlue
         };
@@ -60,13 +60,13 @@ public class MainWindow : Window
         workList = new SelectList<ViewItem>(Console.WindowHeight - 4, Console.WindowWidth, new List<ViewItem>());
         AddChild(workList);
 
-        statusBar = new TextBox(Console.WindowWidth, "Waiting for repo list...", CalculateStatusBar)
+        statusBar = new TextBox(Console.WindowWidth-1, "Waiting for repo list...", CalculateStatusBar)
         {
             BackgroundColor = ConsoleColor.DarkBlue
         };
         AddChild(statusBar);
 
-        launchBar = new HorizPanel(0, 0, 1, Console.WindowWidth);
+        launchBar = new HorizPanel(0, 0, 1, Console.WindowWidth-1);
         AddChild(launchBar);
 
         if (Window == null)
