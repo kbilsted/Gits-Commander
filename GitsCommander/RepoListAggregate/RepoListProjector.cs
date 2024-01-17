@@ -4,12 +4,12 @@ using GitsCommander.Views;
 namespace GitsCommander.RepoListAggregate;
 
 public class RepoListProjector :
-INotificationHandler<RepoListWasCreated>,
-INotificationHandler<RepoHasLocalChanges>,
-INotificationHandler<RepoHasRemoteChanges>,
-INotificationHandler<WorkItemWorkStarted>,
-INotificationHandler<WorkItemWorkFinished>,
-INotificationHandler<PullingBranchStarted>
+    INotificationHandler<RepoListWasCreated>,
+    INotificationHandler<RepoHasLocalChanges>,
+    INotificationHandler<RepoHasRemoteChanges>,
+    INotificationHandler<WorkItemWorkStarted>,
+    INotificationHandler<WorkItemWorkFinished>,
+    INotificationHandler<PullingBranchStarted>
 {
 
     public Task Handle(RepoListWasCreated notification, CancellationToken cancellationToken)
