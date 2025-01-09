@@ -14,6 +14,8 @@ record Startup(
 
     public void Execute()
     {
+        Console.Clear();
+
         logger.LogInformation("Starting application");
 
         var gui = new MainWindow(mediator);
