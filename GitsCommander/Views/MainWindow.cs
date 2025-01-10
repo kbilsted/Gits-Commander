@@ -96,13 +96,23 @@ public class MainWindow : Window
                 if (active != null)
                     mediator.Publish(new LaunchAProgramCommand(active.Value, ch.Key.ToString()));
             }
-            if (ch.Key == ConsoleKey.UpArrow)
+            if (ch.Key is ConsoleKey.UpArrow or ConsoleKey.K)
             {
                 workList.Up();
             }
-            if (ch.Key == ConsoleKey.DownArrow)
+            if (ch.Key is ConsoleKey.DownArrow or ConsoleKey.J)
             {
                 workList.Down();
+            }
+            if (ch.Key is ConsoleKey.PageDown || ch.KeyChar is 'æ' or ';')
+            {
+                for (int i = 0; i < 10; i++)
+                    workList.Down();
+            }
+            if (ch.Key is ConsoleKey.PageUp or ConsoleKey.H)
+            {
+                for (int i = 0; i < 10; i++)
+                    workList.Up();
             }
             if (ch.KeyChar == '1')
             {
