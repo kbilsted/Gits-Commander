@@ -36,5 +36,7 @@ public class TextBox : GuiComponent
 
         Console.SetCursorPosition(X, Y);
         Console.Write(toPrint);
+
+        CursorAfterPaint = (X + (Width < Value.Length ? Width : value.Length), Console.CursorTop);
     }
 }

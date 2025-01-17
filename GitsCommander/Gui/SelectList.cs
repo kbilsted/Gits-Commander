@@ -1,4 +1,7 @@
-﻿namespace GitsCommander.Gui;
+﻿using System.Text.RegularExpressions;
+using GitsCommander.Views;
+
+namespace GitsCommander.Gui;
 
 public interface ISelectListItem
 {
@@ -9,60 +12,135 @@ public interface ISelectListItem
 public class SelectList<T> : GuiComponent
     where T : ISelectListItem
 {
-
     public int Active
     {
         get { return active; }
         set
         {
+            // maybe needed - test later...eg when implementing goto line
+            //if (value >= FilteredItems.Count)
+            //    value = FilteredItems.Count - 1;
+            //if (value < 0)
+            //    value = 0;
+
             while (value > active)
                 Down();
             while (value < active)
                 Up();
         }
     }
+
     int active;
 
     int topShowElemt;
     int bottonShowElemt;
 
-    public List<T> Items { get { return items; } set { UpdateItems(value); } }
-    private List<T> items;
-    public bool ShowNumbers { get; set; } = true;
+    bool showActiveLine = true;
 
-    public int? GetActiveId() => items.Count == 0
+    public bool ShowActiveLine
+    {
+        get
+        {
+            return ShowActiveLine;
+        }
+        set
+        {
+            showActiveLine = value;
+            NeedRedraw = true;
+        }
+    }
+
+    public List<T> Items
+    {
+        get { return items; }
+        set
+        {
+            UpdateItems(value);
+        }
+    }
+
+    private List<T> items;
+
+    public bool Filter(T item)
+    {
+        return NameFilterRex.IsMatch(item.ToString());
+    }
+
+    public List<T> FilteredItems;
+
+    public bool ShowNumbers { get; set; } = true;
+    private string? _nameFilter;
+
+    public string NameFilter
+    {
+        get { return _nameFilter; }
+        set
+        {
+            _nameFilter = value;
+            NameFilterRex = MakeNameFilterRex(value);
+            NeedRedraw = true;
+        }
+    }
+
+    Regex NameFilterRex = new Regex(".");
+
+    static Regex? MakeNameFilterRex(string nameFilter)
+    {
+        if (nameFilter == "")
+            return new Regex(".");
+
+        var regexOptions = nameFilter.All(char.IsLower) ? RegexOptions.IgnoreCase : RegexOptions.None;
+        var pattern = string.Join("", nameFilter.Select(x =>
+        {
+            if (char.IsUpper(x))
+                return (".*" + x);
+            return "" + x;
+        }));
+        return new Regex(pattern, regexOptions);
+    }
+
+    public int? GetActiveId() => FilteredItems.Count == 0
         ? null
-        : items[active].Id;
+        : FilteredItems[active].Id;
 
     readonly string EmptyRow;
 
     public SelectList(int height, int width, List<T> items, bool visible = true)
         : base(0, 0, height, width, visible)
     {
+        Active = 0;
+        topShowElemt = 0;
+        bottonShowElemt = Height - 1;
+
         UpdateItems(items);
-        this.items = items;
 
         EmptyRow = "".PadLeft(width);
     }
 
     public void RemoveItem(int index)
     {
-        Items.RemoveAt(index);
-        if (active >= items.Count)
-            active = items.Count - 1;
+        T item = FilteredItems[index];
+        items.Remove(item);
+        if (active >= FilteredItems.Count)
+            active = FilteredItems.Count - 1;
 
         NeedRedraw = true;
     }
 
     public void UpdateItems(List<T> items)
     {
-        if (items.Count < Active || this.items == null)
+        if (items == null) throw new ArgumentNullException();
+
+        this.items = items;
+        FilteredItems = items.Where(Filter).ToList();
+
+        if (FilteredItems.Count < Active)
         {
             Active = 0;
             topShowElemt = 0;
             bottonShowElemt = Height - 1;
         }
-        this.items = items;
+
         NeedRedraw = true;
     }
 
@@ -75,44 +153,10 @@ public class SelectList<T> : GuiComponent
     readonly StringBuilder sb = new StringBuilder();
     public override void Draw()
     {
-        (string, ConsoleColor)? DrawI(int paintRow)
-        {
-            if (!items.Any())
-                return ("".PadRight(Width), ConsoleColor.Black);
-            if (paintRow < topShowElemt)
-                return null;
-            if (paintRow > bottonShowElemt)
-                return null;
-
-            if (paintRow == Active)
-                Console.BackgroundColor = ConsoleColor.DarkYellow;
-            else
-                Console.BackgroundColor = ConsoleColor.Black;
-
-            sb.Clear();
-
-            ConsoleColor foregroundColor = ConsoleColor.Black;
-
-            if (paintRow >= items.Count)
-            {
-                sb.Append("".PadRight(Width));
-            }
-            else
-            {
-                if (ShowNumbers)
-                    sb.Append($"{paintRow,4}. ");
-                sb.Append(items[paintRow].ToString());
-                sb.Append("".PadRight(Width));
-                foregroundColor = items[paintRow].Color ?? ConsoleColor.Gray;
-            }
-
-            return (sb.ToString(0, Math.Min(Width, sb.Length)), foregroundColor);
-        }
-
-        int max = Math.Max(Height, items.Count);
+        int max = Math.Max(Height, FilteredItems.Count);
         for (int paintRow = 0; paintRow < max; paintRow++)
         {
-            (string s, ConsoleColor color)? x = DrawI(paintRow);
+            (string s, ConsoleColor color)? x = DrawLine(paintRow);
 
             if (x == null)
                 continue;
@@ -122,6 +166,40 @@ public class SelectList<T> : GuiComponent
             Console.WriteLine(x.Value.s);
             Console.ForegroundColor = tmp;
         }
+    }
+
+    private (string, ConsoleColor)? DrawLine(int paintRow)
+    {
+        if (!FilteredItems.Any())
+            return ("".PadRight(Width), ConsoleColor.Black);
+        if (paintRow < topShowElemt)
+            return null;
+        if (paintRow > bottonShowElemt)
+            return null;
+
+        if (showActiveLine && paintRow == Active)
+            Console.BackgroundColor = ConsoleColor.DarkYellow;
+        else
+            Console.BackgroundColor = ConsoleColor.Black;
+
+        sb.Clear();
+
+        ConsoleColor foregroundColor = ConsoleColor.Black;
+
+        if (paintRow >= FilteredItems.Count)
+        {
+            sb.Append("~".PadRight(Width));
+        }
+        else
+        {
+            if (ShowNumbers)
+                sb.Append($"{paintRow,4}. ");
+            sb.Append(FilteredItems[paintRow].ToString());
+            sb.Append("".PadRight(Width));
+            foregroundColor = FilteredItems[paintRow].Color ?? ConsoleColor.Gray;
+        }
+
+        return (sb.ToString(0, Math.Min(Width, sb.Length)), foregroundColor);
     }
 
     public void Up()
@@ -142,7 +220,7 @@ public class SelectList<T> : GuiComponent
 
     public void Down()
     {
-        if (active == items.Count - 1)
+        if (active == FilteredItems.Count - 1)
             return;
 
         active++;

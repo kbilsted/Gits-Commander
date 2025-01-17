@@ -3,12 +3,13 @@
 public abstract class GuiComponent
 {
     public static bool NeedRedraw { get; set; } = true;
-    public static object Lock = new object();
+    public static readonly object Lock = new object();
 
     public int Height;
     public int Width;
     public int X;
     public int Y;
+    public (int, int)? CursorAfterPaint;
 
     protected List<GuiComponent> Children = new List<GuiComponent>();
 
@@ -44,8 +45,10 @@ public abstract class GuiComponent
                 return true;
             }
         }
+
         return false;
     }
+
     public virtual void ClearChildren() => Children.Clear();
 
     public virtual GuiComponent AddChild(GuiComponent c)

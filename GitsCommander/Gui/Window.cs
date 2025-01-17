@@ -29,7 +29,7 @@ public class Window : GuiComponent
             }
             else
             {
-                Thread.Sleep(50);
+                Thread.Sleep(100);
                 ShouldRedraw();
             }
         }
